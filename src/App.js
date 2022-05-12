@@ -7,6 +7,7 @@ import Contact from './Pages/Contact/Contact'
 import Reviews from './Pages/Reviews/Reviews'
 import Login from './Pages/Login/Login'
 import Appointment from './Pages/Appointment/Appointment'
+import Footer from './Pages/Shared/Footer';
 
 
 function App() {
@@ -23,6 +24,8 @@ function App() {
         <Route path = '/login' element= {<Login></Login>}></Route>
         <Route path='/appointment' element= {<Appointment></Appointment>}></Route>
       </Routes>
+      {/* footer part */}
+      <Footer></Footer>
     </div>
   );
 }
