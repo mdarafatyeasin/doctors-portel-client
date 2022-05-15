@@ -1,55 +1,83 @@
 import React from 'react';
 import { useForm } from "react-hook-form";
-import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
+import { useCreateUserWithEmailAndPassword, useSignInWithGoogle, useUpdateProfile } from 'react-firebase-hooks/auth';
 import auth from '../../firebase.init';
 import Loading from '../Shared/Loading';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-const Login = () => {
-    // google 
-    const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
-    const { register, formState: { errors }, handleSubmit } = useForm();
+const Signup = () => {
+        // google 
+        const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
+        
+        // email 
+        const [
+            createUserWithEmailAndPassword,
+            user,
+            loading,
+            error,
+          ] = useCreateUserWithEmailAndPassword(auth);
 
-    // email 
-    const [
-        signInWithEmailAndPassword,
-        user,
-        loading,
-        error,
-    ] = useSignInWithEmailAndPassword(auth);
-    let signinError;
+        //  update
+        const [updateProfile, updating, updateError] = useUpdateProfile(auth);
 
-    if (error || gError) {
-        signinError = <p className='text-red-500 font-bold'>{error?.message || gError?.message}</p>
-    };
+        // react form
+        const { register, formState: { errors }, handleSubmit } = useForm();
 
-    if (gLoading || loading) {
-        return <Loading></Loading>;
-    }
-
-    if (gUser || user) {
-        console.log(gUser._tokenResponse);
-    };
-
-    const onSubmit = data => {
-        signInWithEmailAndPassword(data.email, data.password);
-        signInWithGoogle(data.email, data.password);
-
-        console.log(data);
-    };
-
+        let signinError;
+        const navigate = useNavigate();
+    
+        if (error || gError || updateError) {
+            signinError = <p className='text-red-500 font-bold'>{error?.message || gError?.message || updateError?.message}</p>
+        };
+    
+        if (gLoading || loading || updating) {
+            return <Loading></Loading>;
+        }
+    
+        if (gUser || user) {
+            console.log(gUser, user);
+        };
+    
+        const onSubmit =async data => {
+            await createUserWithEmailAndPassword(data.email, data.password);
+            signInWithGoogle(data.email, data.password);
+            await updateProfile({ displayName: data.name });
+            navigate('/appointment')
+    
+            console.log(data);
+        };
     return (
         <div className='flex mt-20 justify-center item-center'>
             <div className="card w-96 bg-base-100 shadow-xl">
                 <div className="card-body">
-                    <h2 className="card-title m-auto text-primary font-bold text-3xl"> Log In</h2>
+                    <h2 className="card-title m-auto text-primary font-bold text-3xl">Sign Up</h2>
 
                     {/* ----------------------------Email and password--------------------------- */}
 
                     <form onSubmit={handleSubmit(onSubmit)}>
 
-                        {/* -------------------------------------------------------------------- */}
+                        {/* -----------------------------name----------------------------- */}
 
+                        <div className="form-control w-full max-w-xs">
+                            <label className="label">
+                                <span className="label-text">Name:</span>
+                            </label>
+                            <input
+                                {...register("name", {
+                                    required: {
+                                        value: true,
+                                        message: 'Name is required'
+                                    }                                   
+                                })}
+                                type="text" placeholder="Enter Your Full Name"
+                                className="input input-bordered w-full max-w-xs"
+                            />
+                            <label className="label">
+                                {errors.name?.type === 'pattern' && <span className="label-text-alt">{errors.name.message}</span>}
+
+                            </label>
+                        </div>
+                        {/* ------------------------------email------------------------ */}
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
                                 <span className="label-text">Email:</span>
@@ -74,6 +102,7 @@ const Login = () => {
 
                             </label>
                         </div>
+                        {/* -------------------------------password--------------------- */}
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
                                 <span className="label-text">Password:</span>
@@ -103,11 +132,11 @@ const Login = () => {
 
 
                         {/* -------------------------------------------------------------------- */}
-                        <input type="submit" value={'Log In'} className='btn w-full max-w-xs text-white' />
+                        <input type="submit" value={'Sign Up'} className='btn w-full max-w-xs text-white' />
                     </form>
 
                     {/* -------------------------------------------------------------------------- */}
-                    <p><small>New to Doctors Portal? <Link className='text-secondary' to='/signup'>create a new account</Link> </small></p>
+                    <p><small>New to Doctors Portal? <Link className='text-secondary' to='/login'>Login</Link> </small></p>
                     <div className="divider">OR</div>
                     {signinError}
                     <button
@@ -119,4 +148,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Signup;
