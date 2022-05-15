@@ -9,6 +9,7 @@ import Login from './Pages/Login/Login'
 import Appointment from './Pages/Appointment/Appointment'
 import Footer from './Pages/Shared/Footer';
 import Signup from './Pages/Login/Signup'
+import RequairAuth from './Pages/Login/RequairAuth';
 
 
 function App() {
@@ -20,10 +21,14 @@ function App() {
         <Route path='/' element={<Home></Home>}></Route>
         <Route path='/about' element={<About></About>}></Route>
         <Route path='/home' element={<Home></Home>}></Route>
-        <Route path='/contact' element= {<Contact></Contact>}></Route>
-        <Route path = '/reviews' element={<Reviews></Reviews>}></Route>
-        <Route path = '/login' element= {<Login></Login>}></Route>
-        <Route path='/appointment' element= {<Appointment></Appointment>}></Route>
+        <Route path='/contact' element={<Contact></Contact>}></Route>
+        <Route path='/reviews' element={<Reviews></Reviews>}></Route>
+        <Route path='/login' element={<Login></Login>}></Route>
+        <Route path='/appointment' element={
+          <RequairAuth>
+            <Appointment></Appointment>
+          </RequairAuth>}>
+        </Route>
         <Route path='/signup' element={<Signup></Signup>}></Route>
       </Routes>
       {/* footer part */}
