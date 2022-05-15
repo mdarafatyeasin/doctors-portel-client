@@ -1,20 +1,41 @@
 import React from 'react';
 import { useForm } from "react-hook-form";
-import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
-import auth from '../../firebase.init'
+import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
+import auth from '../../firebase.init';
+import Loading from '../Shared/Loading';
 
 const Login = () => {
-    const [signInWithGoogle, user, loading, error] = useSignInWithGoogle(auth);
+    // google 
+    const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
     const { register, formState: { errors }, handleSubmit } = useForm();
 
-    if (user) {
-        console.log(user._tokenResponse.displayName)
+    // email 
+    const [
+        signInWithEmailAndPassword,
+        user,
+        loading,
+        error,
+    ] = useSignInWithEmailAndPassword(auth);
+    let signinError;
+
+    if(error || gError){
+        signinError = <p className='text-red-500 font-bold'>{error?.message || gError?.message}</p>
+    };
+
+    if (gLoading || loading) {
+        return <Loading></Loading>;
     }
+    
+    if (gUser) {
+        console.log(gUser._tokenResponse);
+        return <p>Signed In User: {gUser._tokenResponse.email}</p>;
+    };
 
     const onSubmit = data => {
+        signInWithEmailAndPassword(data.email, data.password);
+        signInWithGoogle(data.email, data.password);
 
-
-        console.log(data)
+        console.log(data);
     };
 
     return (
@@ -33,36 +54,62 @@ const Login = () => {
                             <label class="label">
                                 <span class="label-text">Email:</span>
                             </label>
-                            <input 
-                            // register came from react hookes form
-                            {...register("email", {
-                                pattern: {
-                                  value: /[A-Za-z]{3}/,
-                                  message: 'error message'
-                                }
-                              })} 
-                            type="email" placeholder="Enter your email" 
-                            class="input input-bordered w-full max-w-xs" 
+                            <input
+                                {...register("email", {
+                                    required: {
+                                        value: true,
+                                        message: 'Email is required'
+                                    },
+                                    pattern: {
+                                        value: /[a-z0-9]+@[a-z]+\.[a-z]{2,3}/,
+                                        message: 'Please give a valid email'
+                                    }
+                                })}
+                                type="email" placeholder="Enter your email"
+                                class="input input-bordered w-full max-w-xs"
                             />
                             <label class="label">
-                                <span class="label-text-alt">Alt label</span>
+                                {errors.email?.type === 'required' && <span class="label-text-alt">{errors.email.message}</span>}
+                                {errors.email?.type === 'pattern' && <span class="label-text-alt">{errors.email.message}</span>}
+
+                            </label>
+                        </div>
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">Password:</span>
+                            </label>
+                            <input
+                                
+                                {...register("password", {
+                                    required: {
+                                        value: true,
+                                        message: 'Password is required'
+                                    },
+                                    minLength: {
+                                        value: 6,
+                                        message: 'Must be 6 characters or longer' // JS only: <p>error message</p> TS only support string
+                                    }
+                                })}
+                                type="password" placeholder="Enter your password"
+                                class="input input-bordered w-full max-w-xs"
+                            />
+                            <label class="label">
+                                {errors.password?.type === 'required' && <span class="label-text-alt">{errors.password.message}</span>}
+                                {errors.password?.type === 'minLength' && <span class="label-text-alt">{errors.password.message}</span>}
+
                             </label>
                         </div>
 
 
+
                         {/* -------------------------------------------------------------------- */}
-                        <input  />
-                        {errors.firstName?.type === 'required' && "First name is required"}
-
-                        <input {...register("lastName", { required: true })} />
-                        {errors.lastName && "Last name is required"}
-
-                        <input type="submit" />
+                        <input type="submit" value={'Log In'} className='btn w-full max-w-xs' />
                     </form>
 
                     {/* -------------------------------------------------------------------------- */}
 
                     <div className="divider">OR</div>
+                    {signinError}
                     <button
                         onClick={() => signInWithGoogle()}
                         className="btn btn-outline"> Continue with google</button>
