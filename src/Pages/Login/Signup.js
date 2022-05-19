@@ -4,48 +4,51 @@ import { useCreateUserWithEmailAndPassword, useSignInWithGoogle, useUpdateProfil
 import auth from '../../firebase.init';
 import Loading from '../Shared/Loading';
 import { Link, useNavigate } from 'react-router-dom';
+import useToken from '../../Hooks/useToken';
 
 const Signup = () => {
-        // google 
-        const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
-        
-        // email 
-        const [
-            createUserWithEmailAndPassword,
-            user,
-            loading,
-            error,
-          ] = useCreateUserWithEmailAndPassword(auth);
+    // google 
+    const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
 
-        //  update
-        const [updateProfile, updating, updateError] = useUpdateProfile(auth);
+    // email 
+    const [
+        createUserWithEmailAndPassword,
+        user,
+        loading,
+        error,
+    ] = useCreateUserWithEmailAndPassword(auth);
 
-        // react form
-        const { register, formState: { errors }, handleSubmit } = useForm();
+    //  update
+    const [updateProfile, updating, updateError] = useUpdateProfile(auth);
+    const [token] = useToken(gUser || user)
 
-        let signinError;
-        const navigate = useNavigate();
-    
-        if (error || gError || updateError) {
-            signinError = <p className='text-red-500 font-bold'>{error?.message || gError?.message || updateError?.message}</p>
-        };
-    
-        if (gLoading || loading || updating) {
-            return <Loading></Loading>;
-        }
-    
-        if (gUser || user) {
-            console.log(gUser, user);
-        };
-    
-        const onSubmit =async data => {
-            await createUserWithEmailAndPassword(data.email, data.password);
-            signInWithGoogle(data.email, data.password);
-            await updateProfile({ displayName: data.name });
-            navigate('/appointment')
-    
-            console.log(data);
-        };
+    // react form
+    const { register, formState: { errors }, handleSubmit } = useForm();
+
+    let signinError;
+    const navigate = useNavigate();
+
+    if (error || gError || updateError) {
+        signinError = <p className='text-red-500 font-bold'>{error?.message || gError?.message || updateError?.message}</p>
+    };
+
+    if (gLoading || loading || updating) {
+        return <Loading></Loading>;
+    }
+
+    if (token) {
+        // console.log(gUser, user);
+        navigate('/appointment');
+    };
+
+    const onSubmit = async data => {
+        await createUserWithEmailAndPassword(data.email, data.password);
+        signInWithGoogle(data.email, data.password);
+        await updateProfile({ displayName: data.name });
+
+
+        console.log(data);
+    };
     return (
         <div className='flex mt-20 justify-center item-center'>
             <div className="card w-96 bg-base-100 shadow-xl">
@@ -67,7 +70,7 @@ const Signup = () => {
                                     required: {
                                         value: true,
                                         message: 'Name is required'
-                                    }                                   
+                                    }
                                 })}
                                 type="text" placeholder="Enter Your Full Name"
                                 className="input input-bordered w-full max-w-xs"
